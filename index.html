@@ -1,1 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samurai Dojo & Calculator - Reze, Asa & Makima</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0a12;
+            --bg-card: #18111e;
+            --pink-neon: #ff2a85;
+            --pink-soft: #ff77b2;
+            --pink-pale: #ffb8d9;
+            --gold: #f3c669;
+            --text-main: #fce8f3;
+            --text-muted: #b8a0b3;
+            --border-color: rgba(255, 42, 133, 0.3);
+            --shadow-neon: 0 0 25px rgba(255, 42, 133, 0.35);
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Noto Serif JP', serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 20px 0;
+        }
+
+        /* Sakura Petals Animation */
+        .sakura-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .petal {
+            position: absolute;
+            background: linear-gradient(135deg, var(--pink-soft), var(--pink-neon));
+            border-radius: 150% 0 150% 0;
+            animation: fall linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(110vh) translateX(100px) rotate(360deg); opacity: 0; }
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+
+        /* Navigation Hub */
+        .nav-hub {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .hub-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 42, 133, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .hub-btn.active {
+            background: rgba(255, 42, 133, 0.25);
+            color: var(--pink-pale);
+            border-color: var(--pink-neon);
+            box-shadow: 0 0 10px rgba(255, 42, 133, 0.2);
+        }
+
+        .game-card {
+            background-color: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-neon);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-card::before {
+            content: "悪魔道";
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.2rem;
+            color: var(--pink-neon);
+            opacity: 0.15;
+            letter-spacing: 4px;
+            pointer-events: none;
+        }
+
+        .title-area {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .title-area h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            color: var(--pink-pale);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 10px rgba(255, 119, 178, 0.4);
+        }
+
+        .title-area p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--pink-pale);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 10, 18, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: 'Noto Serif JP', serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-color: var(--pink-neon);
+            box-shadow: 0 0 12px rgba(255, 42, 133, 0.3);
+        }
+
+        select option {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--pink-neon), #c71558);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 42, 133, 0.4);
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #ff4d9e, #e6005c);
+            box-shadow: 0 6px 20px rgba(255, 42, 133, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .difficulty-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .diff-btn {
+            padding: 12px;
+            background: rgba(255, 42, 133, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: 'Noto Serif JP', serif;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .diff-btn span {
+            font-size: 0.8rem;
+            color: var(--pink-pale);
+            background: rgba(255, 42, 133, 0.15);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .diff-btn:hover, .diff-btn.selected {
+            background: rgba(255, 42, 133, 0.15);
+            border-color: var(--pink-neon);
+            box-shadow: 0 0 10px rgba(255, 42, 133, 0.2);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stats-bar span strong {
+            color: var(--pink-pale);
+        }
+
+        .message-box {
+            background: rgba(15, 10, 18, 0.6);
+            border-left: 3px solid var(--pink-neon);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .result-container {
+            text-align: center;
+        }
+
+        .result-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--pink-pale);
+        }
+
+        .result-details {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .result-details strong {
+            color: var(--gold);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 42, 133, 0.1);
+            border: 1px solid var(--border-color);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 42, 133, 0.2);
+            box-shadow: 0 0 10px rgba(255, 42, 133, 0.2);
+        }
+
+        /* Calculator Styling */
+        .calc-result-box {
+            background: rgba(15, 10, 18, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: right;
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            color: var(--gold);
+            margin-top: 20px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            word-break: break-all;
+        }
+
+        .character-badge {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--pink-soft);
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sakura-container" id="sakuraContainer"></div>
+
+    <div class="main-container">
+        <!-- Switch between Game and Calculator -->
+        <div class="nav-hub">
+            <button class="hub-btn active" id="navGameBtn">Samurai Game</button>
+            <button class="hub-btn" id="navCalcBtn">Devil Calculator</button>
+        </div>
+
+        <div class="game-card">
+            
+            <!-- SECTION 1: SAMURAI NUMBER GAME -->
+            <div id="section-game">
+                <!-- SCREEN 1: NICKNAME -->
+                <div id="screen-nickname" class="screen active">
+                    <div class="title-area">
+                        <h1>Samurai Trial</h1>
+                        <p>Enter the path of the warrior</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="nicknameInput">Steam Nickname:</label>
+                        <input type="text" id="nicknameInput" placeholder="e.g. Jakl1z" autocomplete="off">
+                    </div>
+                    <button class="btn" id="startBtn">Enter Dojo</button>
+                </div>
+
+                <!-- SCREEN 2: DIFFICULTY -->
+                <div id="screen-difficulty" class="screen">
+                    <div class="title-area">
+                        <h1>Path of Focus</h1>
+                        <p id="welcomeUser">Welcome warrior!</p>
+                    </div>
+                    <label>Select Trial Difficulty:</label>
+                    <div class="difficulty-grid">
+                        <button class="diff-btn selected" data-level="0">Easy <span>1 - 10</span></button>
+                        <button class="diff-btn" data-level="1">Medium <span>1 - 20</span></button>
+                        <button class="diff-btn" data-level="2">Hard <span>1 - 50</span></button>
+                    </div>
+                    <button class="btn" id="beginTrialBtn">Begin Trial</button>
+                </div>
+
+                <!-- SCREEN 3: GAMEPLAY -->
+                <div id="screen-game" class="screen">
+                    <div class="title-area">
+                        <h1>Meditation</h1>
+                        <p id="rangeLabel">Guess number 1 to 10</p>
+                    </div>
+                    <div class="stats-bar">
+                        <span>Attempts: <strong id="attemptCount">1</strong>/5</span>
+                        <span>Best Score: <strong id="bestScoreDisplay">None</strong></span>
+                    </div>
+                    <div class="message-box" id="gameMessage">
+                        Concentrate and make your guess...
+                    </div>
+                    <div class="form-group">
+                        <input type="number" id="guessInput" placeholder="Enter your number..." autocomplete="off">
+                    </div>
+                    <button class="btn" id="submitGuessBtn">Strike</button>
+                </div>
+
+                <!-- SCREEN 4: ROUND RESULT -->
+                <div id="screen-result" class="screen">
+                    <div class="result-container">
+                        <div class="result-title" id="resultTitle">Victory!</div>
+                        <div class="result-details" id="resultDetails">
+                            You guessed it in 3 attempts!<br>New record established!
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" id="replayBtn">Again</button>
+                            <button class="btn" id="quitBtn">Exit Dojo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: CALCULATOR WITH REZE, ASA & MAKIMA -->
+            <div id="section-calc" class="screen">
+                <div class="title-area">
+                    <h1>Devil Calculator</h1>
+                    <p>Powered by Reze, Asa & Makima</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="character-badge" id="charBadge">⚡ Reze (Bomb Fiend)</div>
+                    <label for="calcOperator">Select Operator / Operator Mode:</label>
+                    <select id="calcOperator">
+                        <option value="+">Addition (+)</option>
+                        <option value="-">Subtraction (-)</option>
+                        <option value="*">Multiplication (*)</option>
+                        <option value="/">Division (/)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="num1Input">First digit (num1):</label>
+                    <input type="number" id="num1Input" step="any" placeholder="Write first digit...">
+                </div>
+
+                <div class="form-group">
+                    <label for="num2Input">Second digit (num2):</label>
+                    <input type="number" id="num2Input" step="any" placeholder="Write second digit...">
+                </div>
+
+                <button class="btn" id="calcBtn">Calculate Result</button>
+
+                <div class="calc-result-box" id="calcResultDisplay">
+                    Result: 0
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Sakura Petals Generator
+        const sakuraContainer = document.getElementById('sakuraContainer');
+        for (let i = 0; i < 16; i++) {
+            const petal = document.createElement('div');
+            petal.classList.add('petal');
+            const size = Math.random() * 8 + 6;
+            petal.style.width = `${size}px`;
+            petal.style.height = `${size * 1.4}px`;
+            petal.style.left = `${Math.random() * 100}vw`;
+            petal.style.top = `-20px`;
+            petal.style.animationDuration = `${Math.random() * 6 + 5}s`;
+            petal.style.animationDelay = `${Math.random() * 5}s`;
+            sakuraContainer.appendChild(petal);
+        }
+
+        // Navigation Hub logic
+        const navGameBtn = document.getElementById('navGameBtn');
+        const navCalcBtn = document.getElementById('navCalcBtn');
+        const sectionGame = document.getElementById('section-game');
+        const sectionCalc = document.getElementById('section-calc');
+
+        navGameBtn.addEventListener('click', () => {
+            navGameBtn.classList.add('active');
+            navCalcBtn.classList.remove('active');
+            sectionGame.style.display = 'block';
+            sectionCalc.classList.remove('active');
+        });
+
+        navCalcBtn.addEventListener('click', () => {
+            navCalcBtn.classList.add('active');
+            navGameBtn.classList.remove('active');
+            sectionGame.style.display = 'none';
+            sectionCalc.classList.add('active');
+        });
+
+        // --- GAME LOGIC ---
+        let playerName = "";
+        let selectedDifficulty = 0;
+        let levels = [10, 20, 50];
+        let maxNum = 10;
+        let secretnumber = 0;
+        let attempts = 1;
+        let maxAttempts = 5;
+        let bestScore = null;
+
+        const screenNickname = document.getElementById('screen-nickname');
+        const screenDifficulty = document.getElementById('screen-difficulty');
+        const screenGame = document.getElementById('screen-game');
+        const screenResult = document.getElementById('screen-result');
+
+        const nicknameInput = document.getElementById('nicknameInput');
+        const startBtn = document.getElementById('startBtn');
+        const welcomeUser = document.getElementById('welcomeUser');
+        
+        const diffButtons = document.querySelectorAll('.diff-btn');
+        const beginTrialBtn = document.getElementById('beginTrialBtn');
+
+        const rangeLabel = document.getElementById('rangeLabel');
+        const attemptCount = document.getElementById('attemptCount');
+        const bestScoreDisplay = document.getElementById('bestScoreDisplay');
+        const gameMessage = document.getElementById('gameMessage');
+        const guessInput = document.getElementById('guessInput');
+        const submitGuessBtn = document.getElementById('submitGuessBtn');
+
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDetails = document.getElementById('resultDetails');
+        const replayBtn = document.getElementById('replayBtn');
+        const quitBtn = document.getElementById('quitBtn');
+
+        startBtn.addEventListener('click', () => {
+            const val = nicknameInput.value.trim();
+            if (!val) {
+                nicknameInput.style.borderColor = 'var(--pink-neon)';
+                return;
+            }
+            playerName = val;
+            welcomeUser.textContent = `Warrior: ${playerName}`;
+            screenNickname.classList.remove('active');
+            screenDifficulty.classList.add('active');
+        });
+
+        nicknameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') startBtn.click();
+        });
+
+        diffButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedDifficulty = parseInt(btn.getAttribute('data-level'));
+            });
+        });
+
+        beginTrialBtn.addEventListener('click', startGame);
+
+        function startGame() {
+            maxNum = levels[selectedDifficulty];
+            secretnumber = Math.floor(Math.random() * maxNum) + 1;
+            attempts = 1;
+
+            rangeLabel.textContent = `Guess number from 1 to ${maxNum}`;
+            attemptCount.textContent = attempts;
+            bestScoreDisplay.textContent = bestScore !== null ? `${bestScore} attempts` : 'None';
+            gameMessage.textContent = "Concentrate and make your guess...";
+            guessInput.value = "";
+
+            screenDifficulty.classList.remove('active');
+            screenGame.classList.add('active');
+            guessInput.focus();
+        }
+
+        submitGuessBtn.addEventListener('click', handleGuess);
+        guessInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleGuess();
+        });
+
+        function handleGuess() {
+            const guessVal = parseInt(guessInput.value);
+            if (isNaN(guessVal)) return;
+
+            if (guessVal === secretnumber) {
+                let isNewRecord = false;
+                if (bestScore === null || attempts < bestScore) {
+                    bestScore = attempts;
+                    isNewRecord = true;
+                }
+
+                resultTitle.textContent = "Lucky Man! Victory!";
+                let detailsText = `You guessed it in <strong>${attempts}</strong> attempts!<br>`;
+                if (isNewRecord) {
+                    detailsText += `<span style="color:var(--gold);">New record established!</span>`;
+                } else {
+                    detailsText += `Best score for now: <strong>${bestScore} attempts</strong>.`;
+                }
+                resultDetails.innerHTML = detailsText;
+
+                screenGame.classList.remove('active');
+                screenResult.classList.add('active');
+
+            } else {
+                if (attempts >= maxAttempts) {
+                    resultTitle.textContent = "Game Over!";
+                    resultDetails.innerHTML = `You ran out of attempts.<br>The secret number was <strong>${secretnumber}</strong>.`;
+                    
+                    screenGame.classList.remove('active');
+                    screenResult.classList.add('active');
+                } else {
+                    if (guessVal < secretnumber) {
+                        gameMessage.textContent = "Too low! Try higher.";
+                    } else {
+                        gameMessage.textContent = "Too high! Try lower.";
+                    }
+                    attempts++;
+                    attemptCount.textContent = attempts;
+                    guessInput.value = "";
+                    guessInput.focus();
+                }
+            }
+        }
+
+        replayBtn.addEventListener('click', () => {
+            screenResult.classList.remove('active');
+            screenDifficulty.classList.add('active');
+        });
+
+        quitBtn.addEventListener('click', () => {
+            screenResult.classList.remove('active');
+            nicknameInput.value = "";
+            screenNickname.classList.add('active');
+        });
+
+        // --- CALCULATOR LOGIC (Reze, Asa, Makima) ---
+        const num1Input = document.getElementById('num1Input');
+        const num2Input = document.getElementById('num2Input');
+        const calcOperator = document.getElementById('calcOperator');
+        const calcBtn = document.getElementById('calcBtn');
+        const calcResultDisplay = document.getElementById('calcResultDisplay');
+        const charBadge = document.getElementById('charBadge');
+
+        // Меняем цитату/персонажа при переключении оператора
+        calcOperator.addEventListener('change', () => {
+            const op = calcOperator.value;
+            if (op === '+') {
+                charBadge.textContent = "⚡ Reze (Bomb Fiend Calculation)";
+            } else if (op === '-') {
+                charBadge.textContent = "⚔️ Asa Mitaka (War Devil Logic)";
+            } else if (op === '*') {
+                charBadge.textContent = "👁️ Makima (Control Directive)";
+            } else {
+                charBadge.textContent = "💥 Chainsaw Division Calculation";
+            }
+        });
+
+        calcBtn.addEventListener('click', () => {
+            const num1 = parseFloat(num1Input.value);
+            const num2 = parseFloat(num2Input.value);
+            const op = calcOperator.value;
+
+            if (isNaN(num1) || isNaN(num2)) {
+                calcResultDisplay.textContent = "Error: Enter valid numbers!";
+                return;
+            }
+
+            let result;
+            if (op === "+") {
+                result = num1 + num2;
+                calcResultDisplay.textContent = `Result: ${result} (Reze approves!)`;
+            } else if (op === "-") {
+                result = num1 - num2;
+                calcResultDisplay.textContent = `Result: ${result} (Asa calculated)`;
+            } else if (op === "*") {
+                result = num1 * num2;
+                calcResultDisplay.textContent = `Result: ${result} (Makima controls)`;
+            } else if (op === "/") {
+                if (num2 === 0) {
+                    calcResultDisplay.textContent = "Error: Division by zero!";
+                } else {
+                    result = num1 / num2;
+                    calcResultDisplay.textContent = `Result: ${result}`;
+                }
+            } else {
+                calcResultDisplay.textContent = "Error: false operator!";
+            }
+        });
+    </script>
+</body>
+</html>
